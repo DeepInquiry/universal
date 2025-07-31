@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal Search</title>
+    <title>Universal Search Browser</title>
     <style>
         :root {
             --primary-color: #4285f4;
@@ -27,6 +27,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow-x: hidden;
         }
         
         body.dark-mode {
@@ -36,50 +37,50 @@
             --dark-gray: #f5f5f5;
         }
         
+        body.desktop-mode {
+            min-height: 100vh;
+        }
+        
+        body.desktop-mode .tab-bar {
+            display: flex;
+        }
+        
+        body.desktop-mode .browser-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        body.desktop-mode .search-container {
+            margin-bottom: 0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        body.desktop-mode iframe {
+            flex: 1;
+            border: none;
+        }
+        
+        /* Header Styles */
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 10;
+            height: 60px;
+        }
+        
         body.dark-mode header {
             background-color: #1e1e1e;
             border-bottom: 1px solid #333;
         }
         
-        body.dark-mode .search-engine-tab:not(.active) {
-            background-color: #2d2d2d;
-            border-color: #444;
-            color: #ccc;
-        }
-        
-        body.dark-mode .search-input {
-            background-color: #2d2d2d;
-            border-color: #444;
-            color: #f5f5f5;
-        }
-        
-        body.dark-mode .quick-link {
-            background-color: #2d2d2d;
-            color: #f5f5f5;
-        }
-        
-        body.dark-mode .modal-content {
-            background-color: #2d2d2d;
-            color: #f5f5f5;
-        }
-        
-        body.dark-mode .form-input {
-            background-color: #3d3d3d;
-            border-color: #555;
-            color: #f5f5f5;
-        }
-        
-        header {
-            background-color: white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
         .logo {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             font-weight: bold;
             color: var(--primary-color);
             display: flex;
@@ -90,47 +91,221 @@
             color: var(--accent-color);
         }
         
-        .user-section {
+        .header-controls {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 0.5rem;
         }
         
-        .login-btn, .settings-btn {
-            padding: 0.5rem 1rem;
+        .menu-btn, .new-tab-btn {
+            padding: 0.5rem;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-weight: 500;
-        }
-        
-        .login-btn {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .settings-btn {
-            background-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: none;
             color: var(--medium-gray);
+            font-size: 1.2rem;
         }
         
-        .settings-btn:hover {
+        .menu-btn:hover, .new-tab-btn:hover {
             background-color: rgba(0, 0, 0, 0.05);
         }
         
-        main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
+        body.dark-mode .menu-btn:hover, 
+        body.dark-mode .new-tab-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
         }
         
+        /* Tab Bar Styles */
+        .tab-bar {
+            display: none;
+            background-color: white;
+            border-bottom: 1px solid #ddd;
+            padding: 0.5rem;
+            gap: 0.5rem;
+            overflow-x: auto;
+            scrollbar-width: none;
+            height: 50px;
+        }
+        
+        body.dark-mode .tab-bar {
+            background-color: #1e1e1e;
+            border-color: #333;
+        }
+        
+        .tab-bar::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .tab {
+            padding: 0.5rem 1rem;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-weight: 500;
+            color: var(--medium-gray);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            height: 36px;
+            font-size: 0.9rem;
+        }
+        
+        body.dark-mode .tab {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #ccc;
+        }
+        
+        .tab.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .tab:hover:not(.active) {
+            background-color: rgba(66, 133, 244, 0.1);
+        }
+        
+        body.dark-mode .tab:hover:not(.active) {
+            background-color: rgba(66, 133, 244, 0.2);
+        }
+        
+        .tab-close {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            padding: 0 0.2rem;
+            display: flex;
+            align-items: center;
+            font-size: 1rem;
+        }
+        
+        /* Slide Menu Styles */
+        .slide-menu {
+            position: fixed;
+            top: 60px;
+            right: -300px;
+            width: 280px;
+            height: calc(100vh - 60px);
+            background-color: white;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
+            z-index: 100;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        
+        body.dark-mode .slide-menu {
+            background-color: #1e1e1e;
+            border-left: 1px solid #333;
+        }
+        
+        .slide-menu.open {
+            right: 0;
+        }
+        
+        .menu-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+        }
+        
+        body.dark-mode .menu-item {
+            border-bottom-color: #333;
+        }
+        
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+        
+        .menu-item-icon {
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+        
+        .menu-item-label {
+            flex: 1;
+        }
+        
+        .menu-item-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .menu-item-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .menu-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        body.dark-mode .menu-slider {
+            background-color: #555;
+        }
+        
+        .menu-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .menu-slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:checked + .menu-slider:before {
+            transform: translateX(26px);
+        }
+        
+        /* Search Container Styles */
         .search-container {
             width: 100%;
             max-width: 800px;
             margin-bottom: 2rem;
+            padding: 0 1rem;
+        }
+        
+        body.desktop-mode .search-container {
+            max-width: none;
+            padding: 1rem;
+            background-color: white;
+        }
+        
+        body.dark-mode.desktop-mode .search-container {
+            background-color: #1e1e1e;
         }
         
         .search-engine-tabs {
@@ -145,17 +320,23 @@
         }
         
         .search-engine-tab {
-            padding: 0.75rem 1.5rem;
+            padding: 0.5rem 1rem;
             background-color: white;
             border: 1px solid #ddd;
-            border-bottom: none;
-            border-radius: 8px 8px 0 0;
+            border-radius: 8px;
             margin-right: 0.5rem;
             cursor: pointer;
             white-space: nowrap;
             font-weight: 500;
             color: var(--medium-gray);
             transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        body.dark-mode .search-engine-tab {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #ccc;
         }
         
         .search-engine-tab.active {
@@ -168,6 +349,10 @@
             background-color: rgba(66, 133, 244, 0.1);
         }
         
+        body.dark-mode .search-engine-tab:hover:not(.active) {
+            background-color: rgba(66, 133, 244, 0.2);
+        }
+        
         .search-box {
             position: relative;
             width: 100%;
@@ -175,18 +360,24 @@
         
         .search-input {
             width: 100%;
-            padding: 1rem 1.5rem;
-            padding-right: 50px;
-            font-size: 1.1rem;
+            padding: 0.75rem 1rem;
+            padding-right: 80px;
+            font-size: 1rem;
             border: 1px solid #ddd;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             transition: all 0.3s;
+        }
+        
+        body.dark-mode .search-input {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #f5f5f5;
         }
         
         .search-input:focus {
             outline: none;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
             border-color: var(--primary-color);
         }
         
@@ -202,19 +393,26 @@
             padding: 0.5rem 1rem;
             cursor: pointer;
             transition: background-color 0.2s;
+            font-size: 0.9rem;
         }
         
         .search-btn:hover {
             background-color: #3367d6;
         }
         
+        /* Quick Links Styles */
         .quick-links-container {
             width: 100%;
             max-width: 800px;
+            padding: 0 1rem;
+        }
+        
+        body.desktop-mode .quick-links-container {
+            display: none;
         }
         
         .quick-links-title {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             margin-bottom: 1rem;
             color: var(--dark-gray);
             display: flex;
@@ -224,40 +422,45 @@
         
         .quick-links {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 0.75rem;
             width: 100%;
         }
         
         .quick-link {
             background-color: white;
             border-radius: 8px;
-            padding: 1rem;
+            padding: 0.75rem;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-decoration: none;
             color: var(--dark-gray);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s, box-shadow 0.2s;
             position: relative;
         }
         
+        body.dark-mode .quick-link {
+            background-color: #2d2d2d;
+            color: #f5f5f5;
+        }
+        
         .quick-link:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
         }
         
         .quick-link-actions {
             position: absolute;
-            top: 5px;
-            right: 5px;
+            top: 3px;
+            right: 3px;
             display: none;
         }
         
         .quick-link:hover .quick-link-actions {
             display: flex;
-            gap: 5px;
+            gap: 3px;
         }
         
         .quick-link-edit, .quick-link-delete {
@@ -265,13 +468,13 @@
             color: white;
             border: none;
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 10px;
         }
         
         .quick-link-edit:hover, .quick-link-delete:hover {
@@ -279,14 +482,14 @@
         }
         
         .quick-link-icon {
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
             margin-bottom: 0.5rem;
             object-fit: contain;
         }
         
         .quick-link-title {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             text-align: center;
             word-break: break-word;
             width: 100%;
@@ -307,11 +510,24 @@
         }
         
         .add-quick-link-icon {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             color: var(--primary-color);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.3rem;
         }
         
+        /* Browser Content Styles */
+        .browser-content {
+            display: none;
+            flex: 1;
+        }
+        
+        .browser-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        /* Modal Styles */
         .modal {
             display: none;
             position: fixed;
@@ -320,7 +536,7 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
-            z-index: 100;
+            z-index: 1000;
             justify-content: center;
             align-items: center;
         }
@@ -329,23 +545,32 @@
             background-color: white;
             border-radius: 8px;
             width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
+            max-width: 400px;
+            max-height: 80vh;
             overflow-y: auto;
-            padding: 2rem;
+            padding: 1.5rem;
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        body.dark-mode .modal-content {
+            background-color: #2d2d2d;
+            color: #f5f5f5;
         }
         
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
         
         .modal-title {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             color: var(--dark-gray);
+        }
+        
+        body.dark-mode .modal-title {
+            color: #f5f5f5;
         }
         
         .close-btn {
@@ -357,7 +582,7 @@
         }
         
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
         
         .form-label {
@@ -374,6 +599,12 @@
             font-size: 1rem;
         }
         
+        body.dark-mode .form-input {
+            background-color: #3d3d3d;
+            border-color: #555;
+            color: #f5f5f5;
+        }
+        
         .form-input:focus {
             outline: none;
             border-color: var(--primary-color);
@@ -388,119 +619,173 @@
             font-size: 1rem;
             cursor: pointer;
             transition: background-color 0.2s;
+            width: 100%;
         }
         
         .form-submit:hover {
             background-color: #3367d6;
         }
         
-        .settings-option {
+        /* VPN Status Styles */
+        .vpn-status {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 1rem 0;
-            border-bottom: 1px solid #eee;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-top: 1rem;
         }
         
-        body.dark-mode .settings-option {
-            border-bottom-color: #444;
+        .vpn-status.connected {
+            background-color: rgba(52, 168, 83, 0.1);
+            color: var(--secondary-color);
         }
         
-        .settings-option:last-child {
-            border-bottom: none;
+        .vpn-status.disconnected {
+            background-color: rgba(234, 67, 53, 0.1);
+            color: var(--accent-color);
         }
         
-        .settings-option-label {
+        .vpn-status-icon {
+            font-size: 1.2rem;
+        }
+        
+        .vpn-status-text {
+            font-size: 0.9rem;
             font-weight: 500;
         }
         
-        .settings-select {
-            padding: 0.5rem;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            background-color: white;
+        .vpn-server {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--medium-gray);
         }
         
-        body.dark-mode .settings-select {
+        /* History Styles */
+        .history-list {
+            max-height: 50vh;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+        
+        .history-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        body.dark-mode .history-item {
+            border-bottom-color: #444;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-item-info {
+            flex: 1;
+            margin-right: 1rem;
+            overflow: hidden;
+        }
+        
+        .history-item-title {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 0.9rem;
+        }
+        
+        .history-item-url {
+            font-size: 0.8rem;
+            color: var(--medium-gray);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .history-item-time {
+            font-size: 0.8rem;
+            color: var(--medium-gray);
+            white-space: nowrap;
+        }
+        
+        .history-item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .history-item-btn {
+            background: none;
+            border: none;
+            color: var(--medium-gray);
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .history-item-btn:hover {
+            color: var(--primary-color);
+        }
+        
+        /* Bookmarks Styles */
+        .bookmarks-section {
+            margin-top: 1rem;
+        }
+        
+        .bookmark-form {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+        }
+        
+        .bookmark-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        body.dark-mode .bookmark-input {
             background-color: #3d3d3d;
             border-color: #555;
             color: #f5f5f5;
         }
         
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
-        }
-        
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
+        /* Overlay for when menu is open */
+        .menu-overlay {
+            position: fixed;
+            top: 60px;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
+            width: 100%;
+            height: calc(100vh - 60px);
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            display: none;
         }
         
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
+        .menu-overlay.visible {
+            display: block;
         }
         
-        input:checked + .slider {
-            background-color: var(--primary-color);
-        }
-        
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
-        
-        .bookmarks-section {
-            margin-top: 2rem;
-        }
-        
-        .bookmark-form {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        
-        .bookmark-input {
-            flex: 1;
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        
-        @media (max-width: 768px) {
+        /* Responsive Styles */
+        @media (min-width: 768px) {
+            .menu-btn, .new-tab-btn {
+                font-size: 1rem;
+                padding: 0.5rem 0.75rem;
+            }
+            
             .quick-links {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 1rem;
             }
             
-            .search-engine-tab {
-                padding: 0.5rem 1rem;
-                font-size: 0.9rem;
-            }
-            
-            .bookmark-form {
-                flex-direction: column;
+            .search-input {
+                padding: 1rem 1.5rem;
+                padding-right: 100px;
             }
         }
     </style>
@@ -508,11 +793,73 @@
 <body>
     <header>
         <div class="logo">Universal<span>Search</span></div>
-        <div class="user-section">
-            <button class="settings-btn" id="settingsBtn">⚙️ Settings</button>
-            <button class="login-btn" id="loginBtn">Login</button>
+        <div class="header-controls">
+            <button class="new-tab-btn" id="newTabBtn" title="New Tab">➕</button>
+            <button class="menu-btn" id="menuBtn" title="Menu">☰</button>
         </div>
     </header>
+    
+    <div class="menu-overlay" id="menuOverlay"></div>
+    
+    <div class="slide-menu" id="slideMenu">
+        <div class="menu-item" id="historyMenuItem">
+            <div class="menu-item-icon">🕒</div>
+            <div class="menu-item-label">History</div>
+        </div>
+        
+        <div class="menu-item" id="bookmarksMenuItem">
+            <div class="menu-item-icon">🔖</div>
+            <div class="menu-item-label">Bookmarks</div>
+        </div>
+        
+        <div class="menu-item" id="settingsMenuItem">
+            <div class="menu-item-icon">⚙️</div>
+            <div class="menu-item-label">Settings</div>
+        </div>
+        
+        <div class="menu-item">
+            <div class="menu-item-icon">👤</div>
+            <div class="menu-item-label">Incognito Mode</div>
+            <label class="menu-item-switch">
+                <input type="checkbox" id="incognitoMenuToggle">
+                <span class="menu-slider"></span>
+            </label>
+        </div>
+        
+        <div class="menu-item">
+            <div class="menu-item-icon">🖥️</div>
+            <div class="menu-item-label">Desktop Mode</div>
+            <label class="menu-item-switch">
+                <input type="checkbox" id="desktopMenuToggle">
+                <span class="menu-slider"></span>
+            </label>
+        </div>
+        
+        <div class="menu-item" id="vpnMenuItem">
+            <div class="menu-item-icon">🔒</div>
+            <div class="menu-item-label">VPN</div>
+            <label class="menu-item-switch">
+                <input type="checkbox" id="vpnToggle">
+                <span class="menu-slider"></span>
+            </label>
+        </div>
+        
+        <div class="vpn-status disconnected" id="vpnStatus">
+            <div class="vpn-status-icon">🔴</div>
+            <div class="vpn-status-text">VPN Disconnected</div>
+        </div>
+        
+        <div class="vpn-server" id="vpnServer">Server: Not connected</div>
+        
+        <div class="menu-item" id="loginMenuItem">
+            <div class="menu-item-icon">🔑</div>
+            <div class="menu-item-label" id="loginMenuLabel">Login</div>
+        </div>
+    </div>
+    
+    <div class="tab-bar" id="tabBar">
+        <!-- Tabs will be added here dynamically -->
+    </div>
     
     <main>
         <div class="search-container">
@@ -538,7 +885,99 @@
                 <!-- Quick links will be added here dynamically -->
             </div>
         </div>
+        
+        <div class="browser-content" id="browserContent">
+            <iframe class="browser-frame" id="browserFrame"></iframe>
+        </div>
     </main>
+    
+    <!-- History Modal -->
+    <div class="modal" id="historyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Search History</h2>
+                <button class="close-btn" id="closeHistoryModal">&times;</button>
+            </div>
+            <div class="history-list" id="historyList">
+                <!-- History items will be added here dynamically -->
+            </div>
+            <div class="form-group">
+                <button type="button" id="clearHistory" class="form-submit">Clear All History</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bookmarks Modal -->
+    <div class="modal" id="bookmarksModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Bookmarks</h2>
+                <button class="close-btn" id="closeBookmarksModal">&times;</button>
+            </div>
+            <div class="quick-links" id="bookmarksList">
+                <!-- Bookmarks will be added here dynamically -->
+            </div>
+            <form class="bookmark-form" id="bookmarkForm">
+                <input type="text" class="bookmark-input" id="bookmarkName" placeholder="Site name" required>
+                <input type="url" class="bookmark-input" id="bookmarkUrl" placeholder="https://example.com" required>
+                <button type="submit" class="form-submit">Add Bookmark</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Settings</h2>
+                <button class="close-btn" id="closeSettingsModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="defaultEngine" class="form-label">Default Search Engine</label>
+                <select id="defaultEngine" class="form-input">
+                    <option value="google">Google</option>
+                    <option value="bing">Bing</option>
+                    <option value="yahoo">Yahoo</option>
+                    <option value="duckduckgo">DuckDuckGo</option>
+                    <option value="yandex">Yandex</option>
+                    <option value="baidu">Baidu</option>
+                    <option value="ecosia">Ecosia</option>
+                    <option value="ask">Ask</option>
+                </select>
+            </div>
+            <div class="menu-item">
+                <div class="menu-item-label">Dark Mode</div>
+                <label class="menu-item-switch">
+                    <input type="checkbox" id="darkModeToggle">
+                    <span class="menu-slider"></span>
+                </label>
+            </div>
+            <div class="menu-item">
+                <div class="menu-item-label">Incognito Mode</div>
+                <label class="menu-item-switch">
+                    <input type="checkbox" id="incognitoModeToggle">
+                    <span class="menu-slider"></span>
+                </label>
+            </div>
+            <div class="menu-item">
+                <div class="menu-item-label">Desktop Mode</div>
+                <label class="menu-item-switch">
+                    <input type="checkbox" id="desktopModeToggle">
+                    <span class="menu-slider"></span>
+                </label>
+            </div>
+            <div class="menu-item">
+                <div class="menu-item-label">VPN</div>
+                <label class="menu-item-switch">
+                    <input type="checkbox" id="vpnSettingsToggle">
+                    <span class="menu-slider"></span>
+                </label>
+            </div>
+            <div class="form-group">
+                <button type="button" id="saveSettings" class="form-submit">Save Settings</button>
+            </div>
+        </div>
+    </div>
     
     <!-- Login Modal -->
     <div class="modal" id="loginModal">
@@ -561,71 +1000,39 @@
         </div>
     </div>
     
-    <!-- Settings Modal -->
-    <div class="modal" id="settingsModal">
+    <!-- VPN Modal -->
+    <div class="modal" id="vpnModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">Settings</h2>
-                <button class="close-btn" id="closeSettingsModal">&times;</button>
+                <h2 class="modal-title">VPN Settings</h2>
+                <button class="close-btn" id="closeVpnModal">&times;</button>
             </div>
-            <div class="form-group">
-                <label for="defaultEngine" class="form-label">Default Search Engine</label>
-                <select id="defaultEngine" class="settings-select">
-                    <option value="google">Google</option>
-                    <option value="bing">Bing</option>
-                    <option value="yahoo">Yahoo</option>
-                    <option value="duckduckgo">DuckDuckGo</option>
-                    <option value="yandex">Yandex</option>
-                    <option value="baidu">Baidu</option>
-                    <option value="ecosia">Ecosia</option>
-                    <option value="ask">Ask</option>
-                </select>
-            </div>
-            <div class="settings-option">
-                <span class="settings-option-label">Dark Mode</span>
-                <label class="switch">
-                    <input type="checkbox" id="darkModeToggle">
-                    <span class="slider round"></span>
+            <div class="menu-item">
+                <div class="menu-item-label">Enable VPN</div>
+                <label class="menu-item-switch">
+                    <input type="checkbox" id="vpnMainToggle">
+                    <span class="menu-slider"></span>
                 </label>
             </div>
-            
-            <div class="bookmarks-section">
-                <h3>Add Bookmark</h3>
-                <form class="bookmark-form" id="bookmarkForm">
-                    <input type="text" class="bookmark-input" id="bookmarkName" placeholder="Site name" required>
-                    <input type="url" class="bookmark-input" id="bookmarkUrl" placeholder="https://example.com" required>
-                    <button type="submit" class="form-submit">Add</button>
-                </form>
-            </div>
-            
             <div class="form-group">
-                <button type="button" id="saveSettings" class="form-submit">Save Settings</button>
+                <label for="vpnServerSelect" class="form-label">Server Location</label>
+                <select id="vpnServerSelect" class="form-input">
+                    <option value="auto">Auto (Fastest)</option>
+                    <option value="us">United States</option>
+                    <option value="uk">United Kingdom</option>
+                    <option value="jp">Japan</option>
+                    <option value="de">Germany</option>
+                    <option value="sg">Singapore</option>
+                </select>
             </div>
-        </div>
-    </div>
-    
-    <!-- Add Quick Link Modal -->
-    <div class="modal" id="addQuickLinkModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Add Quick Link</h2>
-                <button class="close-btn" id="closeAddQuickLinkModal">&times;</button>
+            <div class="vpn-status disconnected" id="vpnModalStatus">
+                <div class="vpn-status-icon">🔴</div>
+                <div class="vpn-status-text">VPN Disconnected</div>
             </div>
-            <form id="addQuickLinkForm">
-                <div class="form-group">
-                    <label for="quickLinkName" class="form-label">Site Name</label>
-                    <input type="text" id="quickLinkName" class="form-input" required>
-                </div>
-                <div class="form-group">
-                    <label for="quickLinkUrl" class="form-label">Site URL</label>
-                    <input type="url" id="quickLinkUrl" class="form-input" required>
-                </div>
-                <div class="form-group">
-                    <label for="quickLinkIcon" class="form-label">Icon URL (optional)</label>
-                    <input type="url" id="quickLinkIcon" class="form-input" placeholder="https://example.com/favicon.ico">
-                </div>
-                <button type="submit" class="form-submit">Add Link</button>
-            </form>
+            <div class="vpn-server" id="vpnModalServer">Server: Not connected</div>
+            <div class="form-group">
+                <button type="button" id="saveVpnSettings" class="form-submit">Save VPN Settings</button>
+            </div>
         </div>
     </div>
     
@@ -635,25 +1042,63 @@
         const searchBtn = document.getElementById('searchBtn');
         const searchEngineTabs = document.getElementById('searchEngineTabs');
         const tabs = document.querySelectorAll('.search-engine-tab');
-        const loginBtn = document.getElementById('loginBtn');
-        const loginModal = document.getElementById('loginModal');
-        const closeLoginModal = document.getElementById('closeLoginModal');
-        const loginForm = document.getElementById('loginForm');
-        const settingsBtn = document.getElementById('settingsBtn');
+        const menuBtn = document.getElementById('menuBtn');
+        const slideMenu = document.getElementById('slideMenu');
+        const menuOverlay = document.getElementById('menuOverlay');
+        const newTabBtn = document.getElementById('newTabBtn');
+        const tabBar = document.getElementById('tabBar');
+        const browserContent = document.getElementById('browserContent');
+        const browserFrame = document.getElementById('browserFrame');
+        const quickLinksContainer = document.getElementById('quickLinks');
+        const historyModal = document.getElementById('historyModal');
+        const closeHistoryModal = document.getElementById('closeHistoryModal');
+        const historyList = document.getElementById('historyList');
+        const clearHistory = document.getElementById('clearHistory');
+        const bookmarksModal = document.getElementById('bookmarksModal');
+        const closeBookmarksModal = document.getElementById('closeBookmarksModal');
+        const bookmarksList = document.getElementById('bookmarksList');
+        const bookmarkForm = document.getElementById('bookmarkForm');
         const settingsModal = document.getElementById('settingsModal');
         const closeSettingsModal = document.getElementById('closeSettingsModal');
         const defaultEngineSelect = document.getElementById('defaultEngine');
         const darkModeToggle = document.getElementById('darkModeToggle');
+        const incognitoModeToggle = document.getElementById('incognitoModeToggle');
+        const desktopModeToggle = document.getElementById('desktopModeToggle');
         const saveSettingsBtn = document.getElementById('saveSettings');
-        const quickLinksContainer = document.getElementById('quickLinks');
-        const bookmarkForm = document.getElementById('bookmarkForm');
-        const addQuickLinkModal = document.getElementById('addQuickLinkModal');
-        const closeAddQuickLinkModal = document.getElementById('closeAddQuickLinkModal');
-        const addQuickLinkForm = document.getElementById('addQuickLinkForm');
+        const loginModal = document.getElementById('loginModal');
+        const closeLoginModal = document.getElementById('closeLoginModal');
+        const loginForm = document.getElementById('loginForm');
+        const vpnModal = document.getElementById('vpnModal');
+        const closeVpnModal = document.getElementById('closeVpnModal');
+        const vpnMainToggle = document.getElementById('vpnMainToggle');
+        const vpnServerSelect = document.getElementById('vpnServerSelect');
+        const saveVpnSettings = document.getElementById('saveVpnSettings');
+        const vpnStatus = document.getElementById('vpnStatus');
+        const vpnServer = document.getElementById('vpnServer');
+        const vpnModalStatus = document.getElementById('vpnModalStatus');
+        const vpnModalServer = document.getElementById('vpnModalServer');
+        const historyMenuItem = document.getElementById('historyMenuItem');
+        const bookmarksMenuItem = document.getElementById('bookmarksMenuItem');
+        const settingsMenuItem = document.getElementById('settingsMenuItem');
+        const loginMenuItem = document.getElementById('loginMenuItem');
+        const loginMenuLabel = document.getElementById('loginMenuLabel');
+        const incognitoMenuToggle = document.getElementById('incognitoMenuToggle');
+        const desktopMenuToggle = document.getElementById('desktopMenuToggle');
+        const vpnToggle = document.getElementById('vpnToggle');
+        const vpnSettingsToggle = document.getElementById('vpnSettingsToggle');
+        const vpnMenuItem = document.getElementById('vpnMenuItem');
         
-        // Current search engine
+        // App State
         let currentEngine = 'google';
         let quickLinks = [];
+        let searchHistory = [];
+        let tabsData = [];
+        let currentTabId = 0;
+        let isIncognito = false;
+        let isDesktopMode = false;
+        let isVpnConnected = false;
+        let vpnServerLocation = 'auto';
+        let isLoggedIn = false;
         
         // Search engine URLs
         const searchEngines = {
@@ -679,16 +1124,42 @@
             { name: 'Reddit', url: 'https://reddit.com', icon: 'https://www.reddit.com/favicon.ico' }
         ];
         
+        // VPN Server Locations
+        const vpnServers = {
+            auto: { name: 'Auto (Fastest)', flag: '🌐' },
+            us: { name: 'United States', flag: '🇺🇸' },
+            uk: { name: 'United Kingdom', flag: '🇬🇧' },
+            jp: { name: 'Japan', flag: '🇯🇵' },
+            de: { name: 'Germany', flag: '🇩🇪' },
+            sg: { name: 'Singapore', flag: '🇸🇬' }
+        };
+        
         // Initialize the app
         function init() {
             loadSettings();
             loadQuickLinks();
+            loadHistory();
+            loadTabs();
+            loadVpnSettings();
+            checkLoginStatus();
             setupEventListeners();
             renderQuickLinks();
+            renderTabs();
+            
+            // Create initial tab
+            if (tabsData.length === 0) {
+                createNewTab();
+            } else {
+                switchToTab(tabsData[0].id);
+            }
         }
         
         // Set up event listeners
         function setupEventListeners() {
+            // Menu button
+            menuBtn.addEventListener('click', toggleSlideMenu);
+            menuOverlay.addEventListener('click', toggleSlideMenu);
+            
             // Search button click
             searchBtn.addEventListener('click', performSearch);
             
@@ -699,7 +1170,7 @@
                 }
             });
             
-            // Tab clicks
+            // Search engine tabs
             tabs.forEach(tab => {
                 tab.addEventListener('click', () => {
                     // Remove active class from all tabs
@@ -713,27 +1184,60 @@
                 });
             });
             
-            // Login modal
-            loginBtn.addEventListener('click', () => {
-                if (loginBtn.textContent === 'Logout') {
-                    localStorage.removeItem('userEmail');
-                    loginBtn.textContent = 'Login';
-                    return;
+            // New tab button
+            newTabBtn.addEventListener('click', createNewTab);
+            
+            // Menu items
+            historyMenuItem.addEventListener('click', () => {
+                renderHistory();
+                historyModal.style.display = 'flex';
+                toggleSlideMenu();
+            });
+            
+            bookmarksMenuItem.addEventListener('click', () => {
+                renderBookmarks();
+                bookmarksModal.style.display = 'flex';
+                toggleSlideMenu();
+            });
+            
+            settingsMenuItem.addEventListener('click', () => {
+                settingsModal.style.display = 'flex';
+                toggleSlideMenu();
+            });
+            
+            loginMenuItem.addEventListener('click', () => {
+                if (isLoggedIn) {
+                    logout();
+                } else {
+                    loginModal.style.display = 'flex';
+                    toggleSlideMenu();
                 }
-                loginModal.style.display = 'flex';
+            });
+            
+            vpnMenuItem.addEventListener('click', () => {
+                vpnModal.style.display = 'flex';
+                toggleSlideMenu();
+            });
+            
+            // Modal close buttons
+            closeHistoryModal.addEventListener('click', () => {
+                historyModal.style.display = 'none';
+            });
+            
+            closeBookmarksModal.addEventListener('click', () => {
+                bookmarksModal.style.display = 'none';
+            });
+            
+            closeSettingsModal.addEventListener('click', () => {
+                settingsModal.style.display = 'none';
             });
             
             closeLoginModal.addEventListener('click', () => {
                 loginModal.style.display = 'none';
             });
             
-            // Settings modal
-            settingsBtn.addEventListener('click', () => {
-                settingsModal.style.display = 'flex';
-            });
-            
-            closeSettingsModal.addEventListener('click', () => {
-                settingsModal.style.display = 'none';
+            closeVpnModal.addEventListener('click', () => {
+                vpnModal.style.display = 'none';
             });
             
             // Login form submission
@@ -747,7 +1251,8 @@
                 
                 // For demo, just save to local storage
                 localStorage.setItem('userEmail', email);
-                loginBtn.textContent = 'Logout';
+                isLoggedIn = true;
+                loginMenuLabel.textContent = 'Logout';
                 
                 // Close modal
                 loginModal.style.display = 'none';
@@ -756,24 +1261,13 @@
                 loginForm.reset();
             });
             
-            // Check if user is "logged in"
-            if (localStorage.getItem('userEmail')) {
-                loginBtn.textContent = 'Logout';
-            }
-            
             // Save settings
             saveSettingsBtn.addEventListener('click', saveSettings);
             
-            // Click outside modal to close
-            window.addEventListener('click', (e) => {
-                if (e.target === loginModal) {
-                    loginModal.style.display = 'none';
-                }
-                if (e.target === settingsModal) {
-                    settingsModal.style.display = 'none';
-                }
-                if (e.target === addQuickLinkModal) {
-                    addQuickLinkModal.style.display = 'none';
+            // Clear history
+            clearHistory.addEventListener('click', () => {
+                if (confirm('Are you sure you want to clear all history?')) {
+                    clearAllHistory();
                 }
             });
             
@@ -790,37 +1284,78 @@
                 addQuickLink(name, url, icon);
                 bookmarkForm.reset();
                 renderQuickLinks();
+                renderBookmarks();
+            });
+            
+            // Toggle switches
+            incognitoMenuToggle.addEventListener('change', () => {
+                toggleIncognitoMode();
+            });
+            
+            desktopMenuToggle.addEventListener('change', () => {
+                toggleDesktopMode();
+            });
+            
+            vpnToggle.addEventListener('change', () => {
+                toggleVpn();
+            });
+            
+            incognitoModeToggle.addEventListener('change', () => {
+                isIncognito = incognitoModeToggle.checked;
+            });
+            
+            desktopModeToggle.addEventListener('change', () => {
+                isDesktopMode = desktopModeToggle.checked;
+            });
+            
+            vpnSettingsToggle.addEventListener('change', () => {
+                isVpnConnected = vpnSettingsToggle.checked;
+            });
+            
+            vpnMainToggle.addEventListener('change', () => {
+                isVpnConnected = vpnMainToggle.checked;
+            });
+            
+            // Save VPN settings
+            saveVpnSettings.addEventListener('click', () => {
+                vpnServerLocation = vpnServerSelect.value;
+                localStorage.setItem('vpnServerLocation', vpnServerLocation);
+                localStorage.setItem('isVpnConnected', isVpnConnected);
+                updateVpnStatus();
+                vpnModal.style.display = 'none';
+            });
+            
+            // Click outside modals to close
+            window.addEventListener('click', (e) => {
+                if (e.target === historyModal) {
+                    historyModal.style.display = 'none';
+                }
+                if (e.target === bookmarksModal) {
+                    bookmarksModal.style.display = 'none';
+                }
+                if (e.target === settingsModal) {
+                    settingsModal.style.display = 'none';
+                }
+                if (e.target === loginModal) {
+                    loginModal.style.display = 'none';
+                }
+                if (e.target === vpnModal) {
+                    vpnModal.style.display = 'none';
+                }
             });
             
             // Add quick link button
             quickLinksContainer.addEventListener('click', (e) => {
                 if (e.target.closest('.add-quick-link')) {
-                    addQuickLinkModal.style.display = 'flex';
+                    bookmarksModal.style.display = 'flex';
                 }
             });
-            
-            // Add quick link form submission
-            addQuickLinkForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const name = document.getElementById('quickLinkName').value;
-                const url = document.getElementById('quickLinkUrl').value;
-                let icon = document.getElementById('quickLinkIcon').value;
-                
-                if (!icon) {
-                    // If no icon provided, use Google's favicon service
-                    let domain = new URL(url.startsWith('http') ? url : `https://${url}`).hostname;
-                    icon = `https://www.google.com/s2/favicons?domain=${domain}`;
-                }
-                
-                addQuickLink(name, url, icon);
-                addQuickLinkForm.reset();
-                addQuickLinkModal.style.display = 'none';
-                renderQuickLinks();
-            });
-            
-            closeAddQuickLinkModal.addEventListener('click', () => {
-                addQuickLinkModal.style.display = 'none';
-            });
+        }
+        
+        // Toggle slide menu
+        function toggleSlideMenu() {
+            slideMenu.classList.toggle('open');
+            menuOverlay.classList.toggle('visible');
         }
         
         // Perform search
@@ -828,10 +1363,159 @@
             const query = searchInput.value.trim();
             if (query) {
                 const searchUrl = searchEngines[currentEngine] + encodeURIComponent(query);
-                window.open(searchUrl, '_blank');
+                
+                // Add to history if not in incognito mode
+                if (!isIncognito) {
+                    addToHistory(query, searchUrl);
+                }
+                
+                // Update current tab's URL
+                updateCurrentTab(searchUrl);
+                
+                // In desktop mode, load in iframe
+                if (isDesktopMode) {
+                    browserFrame.src = searchUrl;
+                    browserContent.style.display = 'block';
+                    document.querySelector('.quick-links-container').style.display = 'none';
+                } else {
+                    // Open in new tab
+                    window.open(searchUrl, '_blank');
+                }
             } else {
                 searchInput.focus();
             }
+        }
+        
+        // Update current tab's URL
+        function updateCurrentTab(url) {
+            const currentTab = tabsData.find(tab => tab.id === currentTabId);
+            if (currentTab) {
+                currentTab.url = url;
+                currentTab.title = url;
+                saveTabs();
+                renderTabs();
+            }
+        }
+        
+        // Add to search history
+        function addToHistory(query, url) {
+            const historyItem = {
+                query,
+                url,
+                timestamp: new Date().getTime(),
+                engine: currentEngine
+            };
+            
+            searchHistory.unshift(historyItem);
+            saveHistory();
+        }
+        
+        // Clear all history
+        function clearAllHistory() {
+            searchHistory = [];
+            saveHistory();
+            renderHistory();
+        }
+        
+        // Render history list
+        function renderHistory() {
+            historyList.innerHTML = '';
+            
+            if (searchHistory.length === 0) {
+                historyList.innerHTML = '<p>No history items found.</p>';
+                return;
+            }
+            
+            searchHistory.forEach((item, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                const domain = new URL(item.url).hostname;
+                const time = new Date(item.timestamp).toLocaleString();
+                
+                historyItem.innerHTML = `
+                    <div class="history-item-info">
+                        <div class="history-item-title">${item.query}</div>
+                        <div class="history-item-url">${domain}</div>
+                    </div>
+                    <div class="history-item-time">${time}</div>
+                    <div class="history-item-actions">
+                        <button class="history-item-btn" data-index="${index}" title="Visit">🔍</button>
+                        <button class="history-item-btn" data-index="${index}" title="Delete">🗑️</button>
+                    </div>
+                `;
+                
+                historyList.appendChild(historyItem);
+            });
+            
+            // Add event listeners to history items
+            document.querySelectorAll('.history-item-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = parseInt(btn.parentElement.parentElement.querySelector('.history-item-btn').dataset.index);
+                    
+                    if (btn.textContent.includes('🔍')) {
+                        // Visit
+                        const item = searchHistory[index];
+                        if (isDesktopMode) {
+                            browserFrame.src = item.url;
+                            browserContent.style.display = 'block';
+                            document.querySelector('.quick-links-container').style.display = 'none';
+                        } else {
+                            window.open(item.url, '_blank');
+                        }
+                        historyModal.style.display = 'none';
+                    } else {
+                        // Delete
+                        searchHistory.splice(index, 1);
+                        saveHistory();
+                        renderHistory();
+                    }
+                });
+            });
+        }
+        
+        // Render bookmarks
+        function renderBookmarks() {
+            bookmarksList.innerHTML = '';
+            
+            quickLinks.forEach((link, index) => {
+                const bookmark = document.createElement('a');
+                bookmark.href = link.url;
+                bookmark.className = 'quick-link';
+                bookmark.target = '_blank';
+                bookmark.innerHTML = `
+                    <div class="quick-link-actions">
+                        <button class="quick-link-edit" data-index="${index}">✏️</button>
+                        <button class="quick-link-delete" data-index="${index}">🗑️</button>
+                    </div>
+                    <img src="${link.icon}" alt="${link.name}" class="quick-link-icon" onerror="this.src='https://www.google.com/favicon.ico'">
+                    <span class="quick-link-title">${link.name}</span>
+                `;
+                bookmarksList.appendChild(bookmark);
+            });
+            
+            // Add event listeners for edit and delete buttons
+            document.querySelectorAll('.quick-link-edit').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const index = parseInt(btn.dataset.index);
+                    editQuickLinkPrompt(index);
+                });
+            });
+            
+            document.querySelectorAll('.quick-link-delete').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const index = parseInt(btn.dataset.index);
+                    if (confirm('Are you sure you want to remove this bookmark?')) {
+                        removeQuickLink(index);
+                        renderBookmarks();
+                        renderQuickLinks();
+                    }
+                });
+            });
         }
         
         // Load settings from local storage
@@ -858,6 +1542,23 @@
                 document.body.classList.add('dark-mode');
                 darkModeToggle.checked = true;
             }
+            
+            // Load incognito mode
+            const incognito = localStorage.getItem('incognitoMode') === 'true';
+            if (incognito) {
+                isIncognito = true;
+                incognitoModeToggle.checked = true;
+                incognitoMenuToggle.checked = true;
+            }
+            
+            // Load desktop mode
+            const desktopMode = localStorage.getItem('desktopMode') === 'true';
+            if (desktopMode) {
+                isDesktopMode = true;
+                desktopModeToggle.checked = true;
+                desktopMenuToggle.checked = true;
+                document.body.classList.add('desktop-mode');
+            }
         }
         
         // Save settings to local storage
@@ -865,6 +1566,8 @@
             const selectedEngine = defaultEngineSelect.value;
             localStorage.setItem('defaultEngine', selectedEngine);
             localStorage.setItem('darkMode', darkModeToggle.checked);
+            localStorage.setItem('incognitoMode', incognitoModeToggle.checked);
+            localStorage.setItem('desktopMode', desktopModeToggle.checked);
             
             // Apply dark mode if toggled
             if (darkModeToggle.checked) {
@@ -873,11 +1576,126 @@
                 document.body.classList.remove('dark-mode');
             }
             
+            // Apply incognito mode if toggled
+            isIncognito = incognitoModeToggle.checked;
+            incognitoMenuToggle.checked = isIncognito;
+            
+            // Apply desktop mode if toggled
+            isDesktopMode = desktopModeToggle.checked;
+            desktopMenuToggle.checked = isDesktopMode;
+            if (isDesktopMode) {
+                document.body.classList.add('desktop-mode');
+            } else {
+                document.body.classList.remove('desktop-mode');
+                browserContent.style.display = 'none';
+                document.querySelector('.quick-links-container').style.display = 'block';
+            }
+            
             // Close modal
             settingsModal.style.display = 'none';
             
             // Show confirmation
             alert('Settings saved successfully!');
+        }
+        
+        // Load VPN settings
+        function loadVpnSettings() {
+            const vpnConnected = localStorage.getItem('isVpnConnected') === 'true';
+            const serverLocation = localStorage.getItem('vpnServerLocation') || 'auto';
+            
+            isVpnConnected = vpnConnected;
+            vpnServerLocation = serverLocation;
+            
+            vpnToggle.checked = isVpnConnected;
+            vpnSettingsToggle.checked = isVpnConnected;
+            vpnMainToggle.checked = isVpnConnected;
+            vpnServerSelect.value = vpnServerLocation;
+            
+            updateVpnStatus();
+        }
+        
+        // Update VPN status display
+        function updateVpnStatus() {
+            if (isVpnConnected) {
+                vpnStatus.className = 'vpn-status connected';
+                vpnStatus.innerHTML = `
+                    <div class="vpn-status-icon">🟢</div>
+                    <div class="vpn-status-text">VPN Connected</div>
+                `;
+                vpnServer.textContent = `Server: ${vpnServers[vpnServerLocation].flag} ${vpnServers[vpnServerLocation].name}`;
+                
+                vpnModalStatus.className = 'vpn-status connected';
+                vpnModalStatus.innerHTML = `
+                    <div class="vpn-status-icon">🟢</div>
+                    <div class="vpn-status-text">VPN Connected</div>
+                `;
+                vpnModalServer.textContent = `Server: ${vpnServers[vpnServerLocation].flag} ${vpnServers[vpnServerLocation].name}`;
+            } else {
+                vpnStatus.className = 'vpn-status disconnected';
+                vpnStatus.innerHTML = `
+                    <div class="vpn-status-icon">🔴</div>
+                    <div class="vpn-status-text">VPN Disconnected</div>
+                `;
+                vpnServer.textContent = 'Server: Not connected';
+                
+                vpnModalStatus.className = 'vpn-status disconnected';
+                vpnModalStatus.innerHTML = `
+                    <div class="vpn-status-icon">🔴</div>
+                    <div class="vpn-status-text">VPN Disconnected</div>
+                `;
+                vpnModalServer.textContent = 'Server: Not connected';
+            }
+        }
+        
+        // Toggle VPN
+        function toggleVpn() {
+            isVpnConnected = vpnToggle.checked;
+            vpnSettingsToggle.checked = isVpnConnected;
+            vpnMainToggle.checked = isVpnConnected;
+            
+            localStorage.setItem('isVpnConnected', isVpnConnected);
+            updateVpnStatus();
+        }
+        
+        // Check login status
+        function checkLoginStatus() {
+            const userEmail = localStorage.getItem('userEmail');
+            if (userEmail) {
+                isLoggedIn = true;
+                loginMenuLabel.textContent = 'Logout';
+            }
+        }
+        
+        // Logout
+        function logout() {
+            localStorage.removeItem('userEmail');
+            isLoggedIn = false;
+            loginMenuLabel.textContent = 'Login';
+            toggleSlideMenu();
+        }
+        
+        // Toggle incognito mode
+        function toggleIncognitoMode() {
+            isIncognito = !isIncognito;
+            localStorage.setItem('incognitoMode', isIncognito);
+            incognitoModeToggle.checked = isIncognito;
+            incognitoMenuToggle.checked = isIncognito;
+        }
+        
+        // Toggle desktop mode
+        function toggleDesktopMode() {
+            isDesktopMode = !isDesktopMode;
+            localStorage.setItem('desktopMode', isDesktopMode);
+            desktopModeToggle.checked = isDesktopMode;
+            desktopMenuToggle.checked = isDesktopMode;
+            
+            if (isDesktopMode) {
+                document.body.classList.add('desktop-mode');
+            } else {
+                document.body.classList.remove('desktop-mode');
+                browserContent.style.display = 'none';
+                document.querySelector('.quick-links-container').style.display = 'block';
+            }
         }
         
         // Load quick links from local storage
@@ -896,6 +1714,34 @@
             localStorage.setItem('quickLinks', JSON.stringify(quickLinks));
         }
         
+        // Load search history from local storage
+        function loadHistory() {
+            const savedHistory = localStorage.getItem('searchHistory');
+            if (savedHistory) {
+                searchHistory = JSON.parse(savedHistory);
+            }
+        }
+        
+        // Save search history to local storage
+        function saveHistory() {
+            localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+        }
+        
+        // Load tabs from local storage
+        function loadTabs() {
+            const savedTabs = localStorage.getItem('tabs');
+            if (savedTabs) {
+                tabsData = JSON.parse(savedTabs);
+                currentTabId = parseInt(localStorage.getItem('currentTabId')) || 0;
+            }
+        }
+        
+        // Save tabs to local storage
+        function saveTabs() {
+            localStorage.setItem('tabs', JSON.stringify(tabsData));
+            localStorage.setItem('currentTabId', currentTabId);
+        }
+        
         // Add a new quick link
         function addQuickLink(name, url, icon) {
             quickLinks.push({ name, url, icon });
@@ -906,14 +1752,12 @@
         function removeQuickLink(index) {
             quickLinks.splice(index, 1);
             saveQuickLinks();
-            renderQuickLinks();
         }
         
         // Edit a quick link
         function editQuickLink(index, name, url, icon) {
             quickLinks[index] = { name, url, icon };
             saveQuickLinks();
-            renderQuickLinks();
         }
         
         // Render quick links
@@ -962,9 +1806,130 @@
                     const index = parseInt(btn.dataset.index);
                     if (confirm('Are you sure you want to remove this link?')) {
                         removeQuickLink(index);
+                        renderQuickLinks();
                     }
                 });
             });
+        }
+        
+        // Create a new tab
+        function createNewTab() {
+            const newTabId = Date.now();
+            const newTab = {
+                id: newTabId,
+                title: 'New Tab',
+                url: '',
+                isActive: true
+            };
+            
+            // Deactivate all other tabs
+            tabsData.forEach(tab => {
+                tab.isActive = false;
+            });
+            
+            tabsData.push(newTab);
+            currentTabId = newTabId;
+            saveTabs();
+            renderTabs();
+            
+            // Reset search input
+            searchInput.value = '';
+            searchInput.focus();
+            
+            // Hide browser content for new tab
+            if (isDesktopMode) {
+                browserContent.style.display = 'none';
+                document.querySelector('.quick-links-container').style.display = 'block';
+            }
+        }
+        
+        // Render tabs
+        function renderTabs() {
+            tabBar.innerHTML = '';
+            
+            tabsData.forEach(tab => {
+                const tabElement = document.createElement('div');
+                tabElement.className = `tab ${tab.isActive ? 'active' : ''}`;
+                tabElement.dataset.tabId = tab.id;
+                
+                const title = tab.url ? new URL(tab.url).hostname : tab.title;
+                
+                tabElement.innerHTML = `
+                    <span>${title}</span>
+                    <button class="tab-close">&times;</button>
+                `;
+                
+                tabBar.appendChild(tabElement);
+                
+                // Add click event to switch tab
+                tabElement.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('tab-close')) {
+                        switchToTab(tab.id);
+                    }
+                });
+                
+                // Add click event to close tab
+                tabElement.querySelector('.tab-close').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeTab(tab.id);
+                });
+            });
+        }
+        
+        // Switch to a specific tab
+        function switchToTab(tabId) {
+            tabsData.forEach(tab => {
+                tab.isActive = tab.id === tabId;
+            });
+            
+            currentTabId = tabId;
+            saveTabs();
+            renderTabs();
+            
+            const currentTab = tabsData.find(tab => tab.id === tabId);
+            if (currentTab) {
+                if (currentTab.url) {
+                    if (isDesktopMode) {
+                        browserFrame.src = currentTab.url;
+                        browserContent.style.display = 'block';
+                        document.querySelector('.quick-links-container').style.display = 'none';
+                    } else {
+                        window.open(currentTab.url, '_blank');
+                    }
+                } else {
+                    if (isDesktopMode) {
+                        browserContent.style.display = 'none';
+                        document.querySelector('.quick-links-container').style.display = 'block';
+                    }
+                }
+            }
+        }
+        
+        // Close a tab
+        function closeTab(tabId) {
+            if (tabsData.length <= 1) {
+                alert('You cannot close the last tab');
+                return;
+            }
+            
+            const tabIndex = tabsData.findIndex(tab => tab.id === tabId);
+            if (tabIndex !== -1) {
+                tabsData.splice(tabIndex, 1);
+                
+                // If we closed the active tab, activate another one
+                if (tabId === currentTabId) {
+                    currentTabId = tabsData[0].id;
+                    tabsData[0].isActive = true;
+                }
+                
+                saveTabs();
+                renderTabs();
+                
+                // Switch to the new active tab
+                if (tabId === currentTabId) {
+                    switchToTab(currentTabId);
+                }
+            }
         }
         
         // Prompt to edit a quick link
@@ -984,6 +1949,9 @@
                 newUrl || link.url,
                 newIcon || link.icon
             );
+            
+            renderQuickLinks();
+            renderBookmarks();
         }
         
         // Initialize the app
