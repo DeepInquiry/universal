@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Search</title>
+    <style>
+        :root {
+            --primary-color: #4285f4;
+            --secondary-color: #34a853;
+            --accent-color: #ea4335;
+            --light-gray: #f5f5f5;
+            --dark-gray: #333;
+            --medium-gray: #757575;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        body.dark-mode {
+            background-color: #121212;
+            color: #f5f5f5;
+            --light-gray: #1e1e1e;
+            --dark-gray: #f5f5f5;
+        }
+        
+        body.dark-mode header {
+            background-color: #1e1e1e;
+            border-bottom: 1px solid #333;
+        }
+        
+        body.dark-mode .search-engine-tab:not(.active) {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #ccc;
+        }
+        
+        body.dark-mode .search-input {
+            background-color: #2d2d2d;
+            border-color: #444;
+            color: #f5f5f5;
+        }
+        
+        body.dark-mode .quick-link {
+            background-color: #2d2d2d;
+            color: #f5f5f5;
+        }
+        
+        body.dark-mode .modal-content {
+            background-color: #2d2d2d;
+            color: #f5f5f5;
+        }
+        
+        body.dark-mode .form-input {
+            background-color: #3d3d3d;
+            border-color: #555;
+            color: #f5f5f5;
+        }
+        
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo span {
+            color: var(--accent-color);
+        }
+        
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .login-btn, .settings-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .login-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .settings-btn {
+            background-color: transparent;
+            color: var(--medium-gray);
+        }
+        
+        .settings-btn:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .search-container {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 2rem;
+        }
+        
+        .search-engine-tabs {
+            display: flex;
+            overflow-x: auto;
+            margin-bottom: 1rem;
+            scrollbar-width: none;
+        }
+        
+        .search-engine-tabs::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .search-engine-tab {
+            padding: 0.75rem 1.5rem;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            margin-right: 0.5rem;
+            cursor: pointer;
+            white-space: nowrap;
+            font-weight: 500;
+            color: var(--medium-gray);
+            transition: all 0.2s;
+        }
+        
+        .search-engine-tab.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .search-engine-tab:hover:not(.active) {
+            background-color: rgba(66, 133, 244, 0.1);
+        }
+        
+        .search-box {
+            position: relative;
+            width: 100%;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            padding-right: 50px;
+            font-size: 1.1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.15);
+            border-color: var(--primary-color);
+        }
+        
+        .search-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .search-btn:hover {
+            background-color: #3367d6;
+        }
+        
+        .quick-links-container {
+            width: 100%;
+            max-width: 800px;
+        }
+        
+        .quick-links-title {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--dark-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 1rem;
+            width: 100%;
+        }
+        
+        .quick-link {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--dark-gray);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+        
+        .quick-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .quick-link-actions {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            display: none;
+        }
+        
+        .quick-link:hover .quick-link-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .quick-link-edit, .quick-link-delete {
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .quick-link-edit:hover, .quick-link-delete:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+        
+        .quick-link-icon {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 0.5rem;
+            object-fit: contain;
+        }
+        
+        .quick-link-title {
+            font-size: 0.9rem;
+            text-align: center;
+            word-break: break-word;
+            width: 100%;
+        }
+        
+        .add-quick-link {
+            background-color: rgba(66, 133, 244, 0.1);
+            border: 2px dashed var(--primary-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .add-quick-link:hover {
+            background-color: rgba(66, 133, 244, 0.2);
+        }
+        
+        .add-quick-link-icon {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            color: var(--dark-gray);
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--medium-gray);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .form-submit {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .form-submit:hover {
+            background-color: #3367d6;
+        }
+        
+        .settings-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        body.dark-mode .settings-option {
+            border-bottom-color: #444;
+        }
+        
+        .settings-option:last-child {
+            border-bottom: none;
+        }
+        
+        .settings-option-label {
+            font-weight: 500;
+        }
+        
+        .settings-select {
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background-color: white;
+        }
+        
+        body.dark-mode .settings-select {
+            background-color: #3d3d3d;
+            border-color: #555;
+            color: #f5f5f5;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .bookmarks-section {
+            margin-top: 2rem;
+        }
+        
+        .bookmark-form {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .bookmark-input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        @media (max-width: 768px) {
+            .quick-links {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+            
+            .search-engine-tab {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+            
+            .bookmark-form {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Universal<span>Search</span></div>
+        <div class="user-section">
+            <button class="settings-btn" id="settingsBtn">⚙️ Settings</button>
+            <button class="login-btn" id="loginBtn">Login</button>
+        </div>
+    </header>
+    
+    <main>
+        <div class="search-container">
+            <div class="search-engine-tabs" id="searchEngineTabs">
+                <div class="search-engine-tab active" data-engine="google">Google</div>
+                <div class="search-engine-tab" data-engine="bing">Bing</div>
+                <div class="search-engine-tab" data-engine="yahoo">Yahoo</div>
+                <div class="search-engine-tab" data-engine="duckduckgo">DuckDuckGo</div>
+                <div class="search-engine-tab" data-engine="yandex">Yandex</div>
+                <div class="search-engine-tab" data-engine="baidu">Baidu</div>
+                <div class="search-engine-tab" data-engine="ecosia">Ecosia</div>
+                <div class="search-engine-tab" data-engine="ask">Ask</div>
+            </div>
+            <div class="search-box">
+                <input type="text" class="search-input" id="searchInput" placeholder="Search the web..." autofocus>
+                <button class="search-btn" id="searchBtn">Search</button>
+            </div>
+        </div>
+        
+        <div class="quick-links-container">
+            <h2 class="quick-links-title">Quick Links</h2>
+            <div class="quick-links" id="quickLinks">
+                <!-- Quick links will be added here dynamically -->
+            </div>
+        </div>
+    </main>
+    
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Login</h2>
+                <button class="close-btn" id="closeLoginModal">&times;</button>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail" class="form-label">Email</label>
+                    <input type="email" id="loginEmail" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword" class="form-label">Password</label>
+                    <input type="password" id="loginPassword" class="form-input" required>
+                </div>
+                <button type="submit" class="form-submit">Login</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Settings</h2>
+                <button class="close-btn" id="closeSettingsModal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="defaultEngine" class="form-label">Default Search Engine</label>
+                <select id="defaultEngine" class="settings-select">
+                    <option value="google">Google</option>
+                    <option value="bing">Bing</option>
+                    <option value="yahoo">Yahoo</option>
+                    <option value="duckduckgo">DuckDuckGo</option>
+                    <option value="yandex">Yandex</option>
+                    <option value="baidu">Baidu</option>
+                    <option value="ecosia">Ecosia</option>
+                    <option value="ask">Ask</option>
+                </select>
+            </div>
+            <div class="settings-option">
+                <span class="settings-option-label">Dark Mode</span>
+                <label class="switch">
+                    <input type="checkbox" id="darkModeToggle">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            
+            <div class="bookmarks-section">
+                <h3>Add Bookmark</h3>
+                <form class="bookmark-form" id="bookmarkForm">
+                    <input type="text" class="bookmark-input" id="bookmarkName" placeholder="Site name" required>
+                    <input type="url" class="bookmark-input" id="bookmarkUrl" placeholder="https://example.com" required>
+                    <button type="submit" class="form-submit">Add</button>
+                </form>
+            </div>
+            
+            <div class="form-group">
+                <button type="button" id="saveSettings" class="form-submit">Save Settings</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Quick Link Modal -->
+    <div class="modal" id="addQuickLinkModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add Quick Link</h2>
+                <button class="close-btn" id="closeAddQuickLinkModal">&times;</button>
+            </div>
+            <form id="addQuickLinkForm">
+                <div class="form-group">
+                    <label for="quickLinkName" class="form-label">Site Name</label>
+                    <input type="text" id="quickLinkName" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="quickLinkUrl" class="form-label">Site URL</label>
+                    <input type="url" id="quickLinkUrl" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="quickLinkIcon" class="form-label">Icon URL (optional)</label>
+                    <input type="url" id="quickLinkIcon" class="form-input" placeholder="https://example.com/favicon.ico">
+                </div>
+                <button type="submit" class="form-submit">Add Link</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // DOM Elements
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const searchEngineTabs = document.getElementById('searchEngineTabs');
+        const tabs = document.querySelectorAll('.search-engine-tab');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginModal = document.getElementById('loginModal');
+        const closeLoginModal = document.getElementById('closeLoginModal');
+        const loginForm = document.getElementById('loginForm');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const closeSettingsModal = document.getElementById('closeSettingsModal');
+        const defaultEngineSelect = document.getElementById('defaultEngine');
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const saveSettingsBtn = document.getElementById('saveSettings');
+        const quickLinksContainer = document.getElementById('quickLinks');
+        const bookmarkForm = document.getElementById('bookmarkForm');
+        const addQuickLinkModal = document.getElementById('addQuickLinkModal');
+        const closeAddQuickLinkModal = document.getElementById('closeAddQuickLinkModal');
+        const addQuickLinkForm = document.getElementById('addQuickLinkForm');
+        
+        // Current search engine
+        let currentEngine = 'google';
+        let quickLinks = [];
+        
+        // Search engine URLs
+        const searchEngines = {
+            google: 'https://www.google.com/search?q=',
+            bing: 'https://www.bing.com/search?q=',
+            yahoo: 'https://search.yahoo.com/search?p=',
+            duckduckgo: 'https://duckduckgo.com/?q=',
+            yandex: 'https://yandex.com/search/?text=',
+            baidu: 'https://www.baidu.com/s?wd=',
+            ecosia: 'https://www.ecosia.org/search?q=',
+            ask: 'https://www.ask.com/web?q='
+        };
+        
+        // Default quick links
+        const defaultQuickLinks = [
+            { name: 'Gmail', url: 'https://mail.google.com', icon: 'https://www.google.com/favicon.ico' },
+            { name: 'YouTube', url: 'https://youtube.com', icon: 'https://www.youtube.com/favicon.ico' },
+            { name: 'Maps', url: 'https://maps.google.com', icon: 'https://www.google.com/maps/favicon.ico' },
+            { name: 'Drive', url: 'https://drive.google.com', icon: 'https://www.google.com/drive/favicon.ico' },
+            { name: 'GitHub', url: 'https://github.com', icon: 'https://github.com/favicon.ico' },
+            { name: 'Twitter', url: 'https://twitter.com', icon: 'https://twitter.com/favicon.ico' },
+            { name: 'Facebook', url: 'https://facebook.com', icon: 'https://facebook.com/favicon.ico' },
+            { name: 'Reddit', url: 'https://reddit.com', icon: 'https://www.reddit.com/favicon.ico' }
+        ];
+        
+        // Initialize the app
+        function init() {
+            loadSettings();
+            loadQuickLinks();
+            setupEventListeners();
+            renderQuickLinks();
+        }
+        
+        // Set up event listeners
+        function setupEventListeners() {
+            // Search button click
+            searchBtn.addEventListener('click', performSearch);
+            
+            // Enter key in search input
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+            
+            // Tab clicks
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    // Add active class to clicked tab
+                    tab.classList.add('active');
+                    // Update current engine
+                    currentEngine = tab.dataset.engine;
+                    // Save to local storage
+                    localStorage.setItem('currentEngine', currentEngine);
+                });
+            });
+            
+            // Login modal
+            loginBtn.addEventListener('click', () => {
+                if (loginBtn.textContent === 'Logout') {
+                    localStorage.removeItem('userEmail');
+                    loginBtn.textContent = 'Login';
+                    return;
+                }
+                loginModal.style.display = 'flex';
+            });
+            
+            closeLoginModal.addEventListener('click', () => {
+                loginModal.style.display = 'none';
+            });
+            
+            // Settings modal
+            settingsBtn.addEventListener('click', () => {
+                settingsModal.style.display = 'flex';
+            });
+            
+            closeSettingsModal.addEventListener('click', () => {
+                settingsModal.style.display = 'none';
+            });
+            
+            // Login form submission
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                
+                // In a real app, you would validate and send to server
+                console.log('Login attempt with:', email, password);
+                
+                // For demo, just save to local storage
+                localStorage.setItem('userEmail', email);
+                loginBtn.textContent = 'Logout';
+                
+                // Close modal
+                loginModal.style.display = 'none';
+                
+                // Clear form
+                loginForm.reset();
+            });
+            
+            // Check if user is "logged in"
+            if (localStorage.getItem('userEmail')) {
+                loginBtn.textContent = 'Logout';
+            }
+            
+            // Save settings
+            saveSettingsBtn.addEventListener('click', saveSettings);
+            
+            // Click outside modal to close
+            window.addEventListener('click', (e) => {
+                if (e.target === loginModal) {
+                    loginModal.style.display = 'none';
+                }
+                if (e.target === settingsModal) {
+                    settingsModal.style.display = 'none';
+                }
+                if (e.target === addQuickLinkModal) {
+                    addQuickLinkModal.style.display = 'none';
+                }
+            });
+            
+            // Bookmark form submission
+            bookmarkForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('bookmarkName').value;
+                const url = document.getElementById('bookmarkUrl').value;
+                
+                // Extract domain for icon if not provided
+                let domain = new URL(url.startsWith('http') ? url : `https://${url}`).hostname;
+                const icon = `https://www.google.com/s2/favicons?domain=${domain}`;
+                
+                addQuickLink(name, url, icon);
+                bookmarkForm.reset();
+                renderQuickLinks();
+            });
+            
+            // Add quick link button
+            quickLinksContainer.addEventListener('click', (e) => {
+                if (e.target.closest('.add-quick-link')) {
+                    addQuickLinkModal.style.display = 'flex';
+                }
+            });
+            
+            // Add quick link form submission
+            addQuickLinkForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('quickLinkName').value;
+                const url = document.getElementById('quickLinkUrl').value;
+                let icon = document.getElementById('quickLinkIcon').value;
+                
+                if (!icon) {
+                    // If no icon provided, use Google's favicon service
+                    let domain = new URL(url.startsWith('http') ? url : `https://${url}`).hostname;
+                    icon = `https://www.google.com/s2/favicons?domain=${domain}`;
+                }
+                
+                addQuickLink(name, url, icon);
+                addQuickLinkForm.reset();
+                addQuickLinkModal.style.display = 'none';
+                renderQuickLinks();
+            });
+            
+            closeAddQuickLinkModal.addEventListener('click', () => {
+                addQuickLinkModal.style.display = 'none';
+            });
+        }
+        
+        // Perform search
+        function performSearch() {
+            const query = searchInput.value.trim();
+            if (query) {
+                const searchUrl = searchEngines[currentEngine] + encodeURIComponent(query);
+                window.open(searchUrl, '_blank');
+            } else {
+                searchInput.focus();
+            }
+        }
+        
+        // Load settings from local storage
+        function loadSettings() {
+            // Load current engine
+            const savedEngine = localStorage.getItem('currentEngine') || 'google';
+            currentEngine = savedEngine;
+            
+            // Update active tab
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.dataset.engine === savedEngine) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            // Load default engine setting
+            const defaultEngine = localStorage.getItem('defaultEngine') || 'google';
+            defaultEngineSelect.value = defaultEngine;
+            
+            // Load dark mode
+            const darkMode = localStorage.getItem('darkMode') === 'true';
+            if (darkMode) {
+                document.body.classList.add('dark-mode');
+                darkModeToggle.checked = true;
+            }
+        }
+        
+        // Save settings to local storage
+        function saveSettings() {
+            const selectedEngine = defaultEngineSelect.value;
+            localStorage.setItem('defaultEngine', selectedEngine);
+            localStorage.setItem('darkMode', darkModeToggle.checked);
+            
+            // Apply dark mode if toggled
+            if (darkModeToggle.checked) {
+                document.body.classList.add('dark-mode');
+            } else {
+                document.body.classList.remove('dark-mode');
+            }
+            
+            // Close modal
+            settingsModal.style.display = 'none';
+            
+            // Show confirmation
+            alert('Settings saved successfully!');
+        }
+        
+        // Load quick links from local storage
+        function loadQuickLinks() {
+            const savedLinks = localStorage.getItem('quickLinks');
+            if (savedLinks) {
+                quickLinks = JSON.parse(savedLinks);
+            } else {
+                quickLinks = [...defaultQuickLinks];
+                saveQuickLinks();
+            }
+        }
+        
+        // Save quick links to local storage
+        function saveQuickLinks() {
+            localStorage.setItem('quickLinks', JSON.stringify(quickLinks));
+        }
+        
+        // Add a new quick link
+        function addQuickLink(name, url, icon) {
+            quickLinks.push({ name, url, icon });
+            saveQuickLinks();
+        }
+        
+        // Remove a quick link
+        function removeQuickLink(index) {
+            quickLinks.splice(index, 1);
+            saveQuickLinks();
+            renderQuickLinks();
+        }
+        
+        // Edit a quick link
+        function editQuickLink(index, name, url, icon) {
+            quickLinks[index] = { name, url, icon };
+            saveQuickLinks();
+            renderQuickLinks();
+        }
+        
+        // Render quick links
+        function renderQuickLinks() {
+            quickLinksContainer.innerHTML = '';
+            
+            quickLinks.forEach((link, index) => {
+                const quickLink = document.createElement('a');
+                quickLink.href = link.url;
+                quickLink.className = 'quick-link';
+                quickLink.target = '_blank';
+                quickLink.innerHTML = `
+                    <div class="quick-link-actions">
+                        <button class="quick-link-edit" data-index="${index}">✏️</button>
+                        <button class="quick-link-delete" data-index="${index}">🗑️</button>
+                    </div>
+                    <img src="${link.icon}" alt="${link.name}" class="quick-link-icon" onerror="this.src='https://www.google.com/favicon.ico'">
+                    <span class="quick-link-title">${link.name}</span>
+                `;
+                quickLinksContainer.appendChild(quickLink);
+            });
+            
+            // Add the "+" button at the end
+            const addButton = document.createElement('div');
+            addButton.className = 'quick-link add-quick-link';
+            addButton.innerHTML = `
+                <div class="add-quick-link-icon">+</div>
+                <span class="quick-link-title">Add Link</span>
+            `;
+            quickLinksContainer.appendChild(addButton);
+            
+            // Add event listeners for edit and delete buttons
+            document.querySelectorAll('.quick-link-edit').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const index = parseInt(btn.dataset.index);
+                    editQuickLinkPrompt(index);
+                });
+            });
+            
+            document.querySelectorAll('.quick-link-delete').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const index = parseInt(btn.dataset.index);
+                    if (confirm('Are you sure you want to remove this link?')) {
+                        removeQuickLink(index);
+                    }
+                });
+            });
+        }
+        
+        // Prompt to edit a quick link
+        function editQuickLinkPrompt(index) {
+            const link = quickLinks[index];
+            const newName = prompt('Edit site name:', link.name);
+            if (newName === null) return;
+            
+            const newUrl = prompt('Edit site URL:', link.url);
+            if (newUrl === null) return;
+            
+            const newIcon = prompt('Edit icon URL (leave blank to keep current):', link.icon);
+            
+            editQuickLink(
+                index,
+                newName || link.name,
+                newUrl || link.url,
+                newIcon || link.icon
+            );
+        }
+        
+        // Initialize the app
+        init();
+    </script>
+</body>
+</html>
